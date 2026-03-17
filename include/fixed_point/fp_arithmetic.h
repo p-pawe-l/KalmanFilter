@@ -11,6 +11,7 @@
 
 
 #include <stdint.h>
+#include "../other.h"
 
 
 /*
@@ -48,6 +49,7 @@
 #endif 
 
 #define FRACTIONAL_PART_SIZE (FIXED_POINT_SIZE - INTEGER_PART_SIZE)
+#define AS_FP(x) ( (FP_TYPE)x << FRACTIONAL_PART_SIZE )
 #define IS_FORMAT_GOOD(i) ( !( (i) > FIXED_POINT_SIZE ) && !( (i) < 0 ) )
 
 /*
@@ -56,7 +58,7 @@
  * Param x2 (int64_t/int32_t) - second 64-bit fixed-point format number
  * Returns  (int64_t/int32_t) - x1 + x2 in 64-bit fixed-point format
  * */
-FP_TYPE fp_add(const FP_TYPE x1, const FP_TYPE x2);
+PUBLIC FP_TYPE fp_add(const FP_TYPE x1, const FP_TYPE x2);
 
 /*
  * Substract operation
@@ -64,7 +66,7 @@ FP_TYPE fp_add(const FP_TYPE x1, const FP_TYPE x2);
  * Param x2 (int64_t/int32_t) - second 64-bit fixed-point format number
  * Returns  (int64_t/int32_t) - x1 - x2 in 64-bit fixed-point format
  * */
-FP_TYPE fp_substract(const FP_TYPE x1, const FP_TYPE x2);
+PUBLIC FP_TYPE fp_substract(const FP_TYPE x1, const FP_TYPE x2);
 
 /*
  * Substract operation
@@ -72,7 +74,7 @@ FP_TYPE fp_substract(const FP_TYPE x1, const FP_TYPE x2);
  * Param x2 (int64_t/int32_t) - second 64-bit/32-bit fixed-point format number
  * Returns  (int64_t/int32_t) - x1 * x2 in 64-bit/32-bit fixed-point format
  * */
-FP_TYPE fp_multiply(const FP_TYPE x1, const FP_TYPE x2);
+PUBLIC FP_TYPE fp_multiply(const FP_TYPE x1, const FP_TYPE x2);
 
 /*
  * Substract operation
@@ -80,7 +82,7 @@ FP_TYPE fp_multiply(const FP_TYPE x1, const FP_TYPE x2);
  * Param x2 (int64_t/int32_t) - second 64-bit/32-bit fixed-point format number
  * Returns  (int64_t/int32_t) - x1 / x2 in 64-bit/32-bit fixed-point format
  * */
-FP_TYPE fp_divide(const FP_TYPE x1, const FP_TYPE x2); 
+PUBLIC FP_TYPE fp_divide(const FP_TYPE x1, const FP_TYPE x2); 
 
 
 #endif

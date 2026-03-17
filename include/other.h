@@ -8,4 +8,6 @@ typedef unsigned __int128 uint128_t;
 #define PRIVATE static
 #define EXTERN extern
 
+#define OPERATION_FAILURE -1
+
 #endif

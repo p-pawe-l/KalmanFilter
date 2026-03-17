@@ -49,6 +49,9 @@ typedef struct {
         uint8_t n_cols;
 } matrix_t;
 
+#define HAS_SAME_DIMS(m1, m2) ( ( m1->n_rows == m2->n_rows ) && ( m1->n_cols == m2->n_cols ) )
+#define CAN_MULTUIPLY(m1, m2) ( m1->n_cols == m2->n_rows ) 
+
 PUBLIC void init_matrix(matrix_t *m, const uint8_t n_rows, const uint8_t n_cols);
 void destroy_matrix(matrix_t *m);
 
@@ -58,6 +61,7 @@ matrix_t negate(const matrix_t *m);
 matrix_t add_matrices(const matrix_t * __restrict m1, const matrix_t * __restrict m2);
 matrix_t dot_product(const matrix_t * __restrict m1, const matrix_t * __restrict m2);
 matrix_t transpose(const matrix_t *m);
+int64_t det(const matrix_t* m);
 matrix_t inverse(const matrix_t *m);
 
 #endif
