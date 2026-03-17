@@ -22,21 +22,29 @@
  * Q16.16 - 32bit number is divided in half (16 bit each) for integer part and fractional part
  * */
 #if defined(__SIZEOF_INT128__)
-	#define EXTENDED_FP_TYPE 	__int128
-	#define FP_TYPE 		int64_t
-	#define FIXED_POINT_SIZE 	64
 
-        #ifndef INTEGER_PART_SIZE
-                #define INTEGER_PART_SIZE 32
-        #endif
+#define EXTENDED_FP_TYPE 	__int128
+#define FP_TYPE 		int64_t
+#define FIXED_POINT_SIZE 	64
+
+#ifndef INTEGER_PART_SIZE
+
+#define INTEGER_PART_SIZE       32
+
+#endif
+
 #else
-	#define EXTENDED_FP_TYPE 	int64_t
-	#define FP_TYPE			int32_t
-	#define FIXED_POINT_SIZE 	32
 
-        #ifndef INTEGER_PART_SIZE
-                #define INTEGER_PART_SIZE 16
-        #endif
+#define EXTENDED_FP_TYPE 	int64_t
+#define FP_TYPE			int32_t
+#define FIXED_POINT_SIZE 	32
+
+#ifndef INTEGER_PART_SIZE
+
+#define INTEGER_PART_SIZE       16
+
+#endif
+
 #endif 
 
 #define FRACTIONAL_PART_SIZE (FIXED_POINT_SIZE - INTEGER_PART_SIZE)
