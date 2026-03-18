@@ -284,9 +284,20 @@ PUBLIC LINEAR_MATRIX_RESULT inverse(const linear_matrix_t *m) {
 			FP_TYPE c00 = cofactor_calc_help(md[4], md[8], md[5], md[7]);
 			FP_TYPE c10 = -cofactor_calc_help(md[1], md[8], md[2], md[7]);
 			FP_TYPE c20 = cofactor_calc_help(md[1], md[5], md[2], md[4]); 			
-                        // TODO
+                        
+			// TODO
+			FP_TYPE c01 = cofactor_calc_help();
+			FP_TYPE c11 = cofactor_calc_help();
+			FP_TYPE c21 = cofactor_calc_help();
+
+			FP_TYPE c02 = cofactor_calc_help();
+			FP_TYPE c12 = cofactor_calc_help();
+			FP_TYPE c22 = cofactor_calc_help();
 		}
-	
+		else
+		{
+			return LM_ERROR(new_matrix, ERR_UNSUPPORTED_TYPE);
+		}
 	}
 	else 
 	{

@@ -31,6 +31,6 @@ typedef struct {
         int64_t obj_acc;
 } __one_dim_object_state;
 
-matrix_t matrix_cast(const __one_dim_object_state *struct_state);
+linear_matrix_t matrix_cast(const __one_dim_object_state *struct_state);
 
 #endif
