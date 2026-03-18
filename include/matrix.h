@@ -1,10 +1,31 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+/* 
+ * Copyright (c) 2026 Paweł Kozikowski
+ * 
+ * File contains declaration of matrix structure and functions that operate on it.
+ * This file is part of Kalman filter implementation in C.
+ * 
+ * License under the MIT License. 
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include "other.h"
 #include "fixed_point/fp_arithmetic.h"
 
 #include <stdint.h>
+
+typedef enum matrix_operation_status {
+	SUCCESS = 0,
+	ERR_MALLOC_FAILED,
+	ERR_MATRIX_DESTROY,
+	ERR_INVALID_PARAMS,
+	ERR_DIMENSION_MISMATCH,
+	ERR_SINGULAR_MATRIX,
+	ERR_NON_SQUARE_MATRIX,
+	ERR_INDEX_OUT_OF_RANGE
+} mo_status_t;
 
 /*
  * Representation of linear matrix
@@ -27,16 +48,29 @@
  * We still need to track number of columns and rows to check whether
  * matrices can be added or multiplied etc.
  * */
-struct linear_matrix {
+typedef struct linear_matrix {
         FP_TYPE *data;
 
-        uint8_t n_rows;
-        uint8_t n_cols;
-};
+        uint32_t n_rows;
+        uint32_t n_cols;
+} linear_matrix_t;
+
+typedef struct fp_type_result {
+        FP_TYPE result;
+        
+        mo_status_t status_code;
+} FP_TYPE_RESULT;
+
+typedef struct linear_matrix_result {
+        linear_matrix_t result;
+      
+        mo_status_t status_code;
+} LINEAR_MATRIX_RESULT;
+
 
 #define HAS_SAME_DIMS(m1, m2) 	( ( m1->n_rows == m2->n_rows ) && ( m1->n_cols == m2->n_cols ) )
 #define IS_SQUARE_MATRIX(m1)	( m1->n_rows == m1->n_cols )
-#define CAN_MULTUIPLY(m1, m2) 	( m1->n_cols == m2->n_rows ) 
+#define CAN_MULTIPLY(m1, m2) 	( m1->n_cols == m2->n_rows ) 
 
 /*
  * Initializing matrix function
@@ -49,7 +83,7 @@ struct linear_matrix {
  * 
  * return void
  * */
-PUBLIC void init_matrix(struct linear_matrix *m, const uint8_t n_rows, const uint8_t n_cols);
+PUBLIC mo_status_t init_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
  * Destroying matrix`s resources function
@@ -59,7 +93,7 @@ PUBLIC void init_matrix(struct linear_matrix *m, const uint8_t n_rows, const uin
  *
  * return void
  * */
-PUBLIC void destroy_matrix(struct linear_matrix *m);
+PUBLIC mo_status_t destroy_matrix(linear_matrix_t *m);
 
 /*
  * Fetching number from provided index function
@@ -72,7 +106,7 @@ PUBLIC void destroy_matrix(struct linear_matrix *m);
  *
  * return	(FP_TYPE		     ) - fetched number in 64-bit/32-bit fixed-point format
  * */
-PUBLIC FP_TYPE at(const struct linear_matrix *m, const uint8_t row, const uint8_t col);
+PUBLIC FP_TYPE_RESULT at(const linear_matrix_t *m, const uint32_t row, const uint32_t col);
 
 
 /*
@@ -83,7 +117,9 @@ PUBLIC FP_TYPE at(const struct linear_matrix *m, const uint8_t row, const uint8_
  *
  * return	(struct linear_matrix        ) - new matrix with negated values
  * */
-PUBLIC struct linear_matrix negate(const struct linear_matrix *m);
+PUBLIC LINEAR_MATRIX_RESULT negate(const linear_matrix_t *m);
+
+PUBLIC LINEAR_MATRIX_RESULT scale(const linear_matrix_t *m, const FP_TYPE factor);
 
 /*
  * Adding two matrices function
@@ -95,14 +131,48 @@ PUBLIC struct linear_matrix negate(const struct linear_matrix *m);
  * 
  * return 	(struct linear_matrix			) - new matrix that results from adding two matrices to each other
  * */
-PUBLIC struct linear_matrix add_matrices(const matrix_t * __restrict m1, const matrix_t * __restrict m2);
+PUBLIC LINEAR_MATRIX_RESULT add_matrices(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
 
-PUBLIC struct linear_matrix dot_product(const matrix_t * __restrict m1, const matrix_t * __restrict m2);
+/*
+* Dot product of two matrices function
+* In other words just multiplying two matrices by itself
+*
+* param m1	(const struct linear_matrix * __restrict) - pointer to the first matrix  (__restrict for vectorized operations on CPU)
+* parma m2	(const struct_linear_matrix * __restrict) - pointer to the second matrix (__restrict for vectorized operations on CPU) 
+* 
+* return 	(struct linear_matrix			) - new matrix that results from multiplying two matrices to each other
+*
+*/
+PUBLIC LINEAR_MATRIX_RESULT dot_product(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
 
-PUBLIC struct linear_matrix transpose(const matrix_t *m);
+/*
+ * Transposing matrix function
+ * This function swaps rows with columns in the matrix.
+ *
+ * param m	(const struct linear_matrix *) - pointer to the matrix that will be transposed
+ *
+ * return 	(struct linear_matrix) - new matrix that is the transpose of the input matrix
+ * */
+PUBLIC LINEAR_MATRIX_RESULT transpose(const linear_matrix_t *m);
 
-PUBLIC FP_TYPE det(const matrix_t* m);
+/*
+ * Calculating determinant of a matrix function
+ * This function calculates the determinant of a square matrix.
+ *
+ * param m	(const struct linear_matrix *) - pointer to the matrix whose determinant will be calculated
+ *
+ * return 	(FP_TYPE) - determinant of the matrix
+ * */
+PUBLIC FP_TYPE_RESULT det(const linear_matrix_t *m);
 
-PUBLIC struct linear_matrix inverse(const matrix_t *m);
+/*
+ * Inverting matrix function
+ * This function calculates the inverse of a square matrix.
+ *
+ * param m	(const struct linear_matrix *) - pointer to the matrix that will be inverted
+ *
+ * return 	(struct linear_matrix) - new matrix that is the inverse of the input matrix
+ * */
+PUBLIC LINEAR_MATRIX_RESULT inverse(const linear_matrix_t *m);
 
 #endif

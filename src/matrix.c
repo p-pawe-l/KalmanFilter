@@ -3,52 +3,53 @@
 #include "../include/fixed_point/fp_arithmetic.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
-PUBLIC void init_matrix_LINEAR(struct linear_matrix *m, const uint8_t n_rows, const uint8_t n_cols) 
+PUBLIC mo_status_t init_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols) 
 {
-	if (n_rows >= 0 && n_cols >= 0)
+	if (n_rows == 0 || n_cols == 0)
 	{
-        	int malloc_res = m->data = (FP_TYPE*)malloc(sizeof(FP_TYPE) * n_rows * n_cols);
-        	if (!malloc_res)
-		{
-			log_error("init_matrix_LINEAR", "Malloc error - probably not enough RAM!");
-			exit(OPERATION_FAILURE);
-		}
-		m->n_rows = n_rows;
-        	m->n_cols = n_cols;
+		return ERR_INVALID_PARAMS;
+	}
+	m->data = (FP_TYPE*)malloc(sizeof(FP_TYPE) * n_rows * n_cols);
+	if (!m->data)
+	{
+		return ERR_MALLOC_FAILED;
+	}
+	m->n_rows = n_rows;
+	m->n_cols = n_cols;
+	return SUCCESS;
+	
+}
+
+PUBLIC mo_status_t destroy_matrix_LINEAR(linear_matrix_t *m) 
+{ 
+	if (m->data)
+	{
+		free(m->data);
+		memset(m, 0, sizeof(linear_matrix_t));
+		return SUCCESS;
 	}
 	else 
 	{
-		log_error("init_matrix_LINEAR", "Provided number of rows/cols is incorrect!");
-		exit(OPERATION_FAILURE);
-	}
+		return ERR_MATRIX_DESTROY;
+	}	
 }
 
-PUBLIC void destroy_matrix_LINEAR(struct linear_matrix *m) 
-{ 
-	int free_res = free(m->data);
-	if (!free_res)
-	{
-		log_error("destroy_matrix_LINEAR", "Destroying matrix error - free function did not well!");
-		exit(OPERATION_FALIURE);
-	} 
-}
-
-PUBLIC FP_TYPE at(const matrix_t *m, const uint8_t row, const uint8_t col) 
+PUBLIC FP_TYPE_RESULT at(const linear_matrix_t *m, const uint32_t row, const uint32_t col) 
 {
-	if ( row <= (m->n_rows - 1) && col <= (m->n_cols - 1) )
+	if ( row < m->n_rows && col < m->n_cols )
 	{	
-		return m->data[row * m->n_cols + col];
+		return (FP_TYPE_RESULT) { .result = m->data[row * m->n_cols + col], .status_code = SUCCESS };
 	}
 	else
 	{
-		log_error("at", "Provided index out of the range!");
-		exit(OPEARATION_FAILURE);
+		return (FP_TYPE_RESULT) { .result = 0, .status_code = ERR_INDEX_OUT_OF_RANGE };
 	}
 }
 
-PUBLIC struct linear_matrix negate(const struct linear_matrix *m) 
+PUBLIC LINEAR_MATRIX_RESULT negate(const linear_matrix_t *m) 
 {
         struct linear_matrix new_Lmatrix;
         init_matrix(&new_Lmatrix, m->n_rows, m->n_cols);
