@@ -4,11 +4,12 @@
 /*
  * Copyright (c) 2026 Paweł Kozikowski
  *
- * File contains declaration of matrix structure and functions that operate on it.
- * This file is part of Kalman filter implementation in C.
+ * This file contains the declaration of the matrix structure and the functions
+ * that operate on it.
+ * This file is part of a Kalman filter implementation in C.
  *
- * License under the MIT License.
- * See LICENSE file in the project root for full license information.
+ * Licensed under the MIT License.
+ * See the LICENSE file in the project root for full license information.
  */
 
 #include <stdint.h>
@@ -30,25 +31,25 @@ typedef enum matrix_operation_status {
 } mo_status_t;
 
 /*
- * Representation of linear matrix
- * What does it mean, linear ? Example:
- * Normal matrix would look like this and would be normally stored as two
- * dimensional array (FP_TYPE **). But this could be inefficient way of
- * storing numbers like this
+ * Representation of a linear matrix.
+ * What does "linear" mean? Example:
+ * A regular matrix would look like this and would typically be stored as a
+ * two-dimensional array (FP_TYPE **). However, that can be an inefficient way
+ * to store numbers like these:
  * |a b|
  * |c d|
  *
- * Linear matrix data is stored as single array. Thanks to that are data is
- * placed in contigous way. This potenital enables vector operations on our
- * CPU with a little optimization needed.
+ * Linear matrix data is stored as a single array. This keeps the data
+ * contiguous in memory, which can enable vector operations on the CPU with
+ * minimal additional optimization.
  * |a b|c d|
  *
- * attribute data (FP_TYPE*) - array with numbers
- * n_rows         (uint32_t ) - number of rows of our matrix
- * n_cols         (uint32_t ) - number of columns in our matrix
+ * attribute data (FP_TYPE*) - array of matrix elements
+ * n_rows         (uint32_t ) - number of rows in the matrix
+ * n_cols         (uint32_t ) - number of columns in the matrix
  *
- * We still need to track number of columns and rows to check whether
- * matrices can be added or multiplied etc.
+ * We still need to track the number of rows and columns to check whether
+ * matrices can be added or multiplied.
  */
 typedef struct linear_matrix {
     FP_TYPE *data;
@@ -57,228 +58,265 @@ typedef struct linear_matrix {
     uint32_t n_cols;
 } linear_matrix_t;
 
-#define HAS_SAME_DIMS(m1, m2) ((m1->n_rows == m2->n_rows) && (m1->n_cols == m2->n_cols))
-#define IS_SQUARE_MATRIX(m1) (m1->n_rows == m1->n_cols)
-#define CAN_MULTIPLY(m1, m2) (m1->n_cols == m2->n_rows)
+/*
+ * Check if two matrices have the same dimensions.
+ * This function checks whether the number of rows and columns in the two
+ * matrices are the same.
+ *
+ * param m1 (const linear_matrix_t *) - pointer to the first matrix
+ * param m2 (const linear_matrix_t *) - pointer to the second matrix
+ *
+ * return (bool_t) - TRUE if the matrices have the same dimensions, FALSE otherwise
+ */
+PUBLIC bool_t has_same_dims(const linear_matrix_t *m1, const linear_matrix_t *m2);
 
 /*
- * Initializing matrix
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes
+ * Check if a matrix is square.
+ * This function checks whether the number of rows and columns in the matrix are equal.
  *
- * param m 	(linear_matrix_t *) - pointer to the matrix that will be initialized
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (const linear_matrix_t *) - pointer to the matrix to check
  *
- * return (mo_status_t) - status of the operation
+ * return (bool_t) - TRUE if the matrix is square, FALSE otherwise
+ */
+PUBLIC bool_t is_square_matrix(const linear_matrix_t *m);
+
+/*
+ * Check if first matrix is iteration of the second matrix.
+ * This function checks whether the first matrix is an iteration of the second
+ * matrix. In other words, this function checks whether the first matrix can be
+ * obtained by multiplying the second matrix by itself some number of times.
+ *
+ * param m1 (const linear_matrix_t *) - pointer to the first matrix
+ * param m2 (const linear_matrix_t *) - pointer to the second matrix
+ *
+ * return (bool_t) - TRUE if the first matrix is an iteration of the second matrix, FALSE otherwise
+ */
+PUBLIC bool_t is_iteration(const linear_matrix_t *m1, const linear_matrix_t *m2);
+
+/*
+ * Initialize a matrix.
+ * Allocate enough memory for the matrix data using malloc, then assign the
+ * row and column counts to the appropriate attributes.
+ *
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
+ *
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
- * Initializing identity matrix
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with identity matrix content (1 on the diagonal, 0 everywhere else).
+ * Initialize an identity matrix.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with the
+ * identity matrix contents (1 on the diagonal, 0 elsewhere).
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_identity_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
- * Initializing zero matrix
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with zeros (0 everywhere).
+ * Initialize a zero matrix.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with zeros.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_zero_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
- * Initializing matrix with only ones
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with ones (1 everywhere).
+ * Initialize a matrix filled with ones.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with ones.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_one_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
- * Initializing matrix from 1D array
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with provided content from 1D array.
+ * Initialize a matrix from a 1D array.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with the
+ * provided contents from a 1D array.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param array (const FP_TYPE *) - pointer to 1D array with content that will be used to fill our matrix (64-bit/32-bit
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param array (const FP_TYPE *) - pointer to a 1D array whose contents will be used to fill the matrix (64-bit/32-bit
  * fixed-point format)
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t *m, const FP_TYPE *array, const uint32_t n_rows,
                                           const uint32_t n_cols);
 
 /*
- * Initializing matrix from 2D array
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with provided content from 2D array.
+ * Initialize a matrix from a 2D array.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with the
+ * provided contents from a 2D array.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param array (const FP_TYPE **) - pointer to 2D array with content that will be used to fill our matrix (64-bit/32-bit
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param array (const FP_TYPE **) - pointer to a 2D array whose contents will be used to fill the matrix (64-bit/32-bit
  * fixed-point format)
- * param n_rows	(const uint32_t) - number of rows that initialized matrix will have
- * param n_cols	(const uint32_t) - number of columns that initialized matrix will have
+ * param n_rows	(const uint32_t) - number of rows in the initialized matrix
+ * param n_cols	(const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t *m, const FP_TYPE **array, const uint32_t n_rows,
                                              const uint32_t n_cols);
 /*
- * Copying matrix
- * Copy the content of one matrix to another matrix.
+ * Copy a matrix.
+ * Copy the contents of one matrix into another matrix.
  *
  * param dest (linear_matrix_t *) - pointer to the destination matrix
  * param src (const linear_matrix_t *) - pointer to the source matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_copy(linear_matrix_t *__restrict dest, const linear_matrix_t *__restrict src);
 
 /*
- * Initializing matrix with random numbers
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with random numbers.
+ * Initialize a matrix with random numbers.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with random values.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_matrix_rand(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
 
 /*
- * Initializing matrix with provided content
- * Initialize matrix data attribute with sufficient memory (malloc used), assign rows and cols
- * to proper attributes, and fill the matrix with provided content.
+ * Initialize a matrix with a provided value.
+ * Allocate enough memory for the matrix data using malloc, assign the row and
+ * column counts to the appropriate attributes, and fill the matrix with the
+ * provided value.
  *
- * param m (linear_matrix_t *) - pointer to the matrix that will be initialized
- * param content (const FP_TYPE) - number that will be used to fill our matrix (64-bit/32-bit fixed-point format)
- * param n_rows (const uint32_t) - number of rows that initialized matrix will have
- * param n_cols (const uint32_t) - number of columns that initialized matrix will have
+ * param m (linear_matrix_t *) - pointer to the matrix to initialize
+ * param content (const FP_TYPE) - value used to fill the matrix (64-bit/32-bit fixed-point format)
+ * param n_rows (const uint32_t) - number of rows in the initialized matrix
+ * param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t init_matrix_with(linear_matrix_t *m, const FP_TYPE content, const uint32_t n_rows,
                                     const uint32_t n_cols);
 
 /*
- * Destroying matrix`s resources
- * Just release memory of array that each matrix is holding (free)
+ * Destroy a matrix's resources.
+ * Release the memory used by the array owned by the matrix.
  *
- * param m (linear_matrix_t *) - pointer to matrix that resources will be destroyed
+ * param m (linear_matrix_t *) - pointer to the matrix whose resources will be released
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t destroy_matrix(linear_matrix_t *m);
 
 /*
- * Fetching number from provided index
- * User provides number of row and column that he is willing to get a number from
- * and this function just calculates position and fetch the number
+ * Fetch a value from a given index.
+ * The caller provides a row and column index, and this function calculates
+ * the corresponding position and stores the value in the provided pointer.
  *
- * param m (const linear_matrix_t *) - pointer to the matrix that we will be fetching from
- * param row (const uint32_t) - number of the row to fetch from
- * param col (const uint32_t) - number of the column to fetch from
+ * param m (const linear_matrix_t *) - pointer to the matrix to read from
+ * param res (FP_TYPE *) - pointer to store the fetched value (64-bit/32-bit fixed-point format)
+ * param row (const uint32_t) - row index to read from
+ * param col (const uint32_t) - column index to read from
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_at(const linear_matrix_t *m, const uint32_t row, const uint32_t col);
+PUBLIC mo_status_t matrix_at(const linear_matrix_t *m, FP_TYPE *res, const uint32_t row, const uint32_t col);
 
 /*
- * Negating all of the numbers in the matrix
- * Takes all of our numbers in matrix and negate them
+ * Negate all values in the matrix.
+ * This function negates every value stored in the matrix.
  *
  * param m (const linear_matrix_t *) - pointer to the matrix that will be negated
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_negate(const linear_matrix_t *m);
 
 /*
- * Scaling matrix
- * Takes all of our numbers in matrix and multiply them by provided factor
+ * Scale a matrix.
+ * Multiply every value in the matrix by the provided factor.
  *
  * param m (const linear_matrix_t *) - pointer to the matrix that will be scaled
- * param factor (const FP_TYPE) - number that will be used to scale our matrix (64-bit/32-bit fixed-point format)
+ * param factor (const FP_TYPE) - value used to scale the matrix (64-bit/32-bit fixed-point format)
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_scale(const linear_matrix_t *m, const FP_TYPE factor);
 
 /*
- * Adding two matrices
- * Take all of the numbers from matrix-1 array and matrix-2 array, add them together on
- * matching indexes and BOOM, addition performed.
+ * Add two matrices.
+ * Add the values from the two matrices element by element at matching indexes.
  *
  * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for vectorized
- * operations on CPU) param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
+ * operations on CPU)
+ * param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
  * vectorized operations on CPU)
  *
- * return (mo_status_t) - status of the operation
- * */
+ * return (mo_status_t) - operation status
+ */
 PUBLIC mo_status_t matrix_add(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
 
 /*
- * Dot product of two matrices function
- * In other words just multiplying two matrices by itself
+ * Compute the dot product of two matrices.
+ * In other words, this function multiplies two matrices together.
  *
  * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for vectorized
- * operations on CPU) param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
+ * operations on CPU)
+ * param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
  * vectorized operations on CPU)
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
 
 /*
- * Transposing matrix function
+ * Transpose a matrix.
  * This function swaps rows with columns in the matrix.
  *
  * param m (const linear_matrix_t *) - pointer to the matrix that will be transposed
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_transpose(const linear_matrix_t *m);
 
 /*
- * Calculating determinant of a matrix function
+ * Calculate the determinant of a matrix.
  * This function calculates the determinant of a square matrix.
  *
  * param m (const linear_matrix_t *) - pointer to the matrix whose determinant will be calculated
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_det(const linear_matrix_t *m);
 
 /*
- * Inverting matrix function
+ * Invert a matrix.
  * This function calculates the inverse of a square matrix.
  *
  * param m (const linear_matrix_t *) - pointer to the matrix that will be inverted
  *
- * return (mo_status_t) - status of the operation
+ * return (mo_status_t) - operation status
  */
 PUBLIC mo_status_t matrix_inverse(const linear_matrix_t *m);
 
