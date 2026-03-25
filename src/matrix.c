@@ -6,73 +6,125 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LM_SUCCESS(lm)          ( LINEAR_MATRIX_RESULT ) { .result = lm, .status_code = SUCCESS }
-#define LM_ERROR(lm, ec)        ( LINEAR_MATRIX_RESULT ) { .result = lm, .status_code = ec }
-#define FP_SUCCESS(fp)          ( FP_TYPE_RESULT ) { .result = fp, .status_code = SUCCESS }
-#define FP_ERROR(ec)            ( FP_TYPE_RESULT ) { .result = 0, .status_code = ec }
+#define M_AT(m, r, c) m->m_data[r * m->n_cols + c]
 
-#define LM_VALIDATE_ERR_C(m, ec)                                                                                \
-        if ( ec != SUCCESS )                                                                                    \
-                return ( LINEAR_MATRIX_RESULT ) { .result =  m, .status_code = ec}                              \
-                
-#define FP_VALIDATE_ERR_C(ec)                                                                                   \
-        if ( ec != SUCCESS )                                                                                    \
-                return ( FP_TYPE_RESULT ) { .result = 0, .status_code = ec}                                     \
 
-#define VALIDATE_M_DATA_FP_TYPE(m)                                                                              \
-                if ( !m->data )                                                                                 \
-                        return ( FP_TYPE_RESULT ) { .result = 0, .status_code = ERR_NULL_DATA_POINTER }         \
+PUBLIC bool_t has_same_dims(const linear_matrix *m1, const linear_matrix *m2)
+{
+        if ((m1->n_rows == m2->n_rows) && (m1->n_cols == m2->n_cols))
+                return (bool_t)TRUE;
+        return (bool_t)FALSE;
+}
 
-#define VALIDATE_M_DATA_LM_TYPE(m, nm)                                                                          \
-                if ( !m->data )                                                                                 \
-                        return ( LINEAR_MATRIX_RESULT ) { .result = nm, .status_code = ERR_NULL_DATA_POINTER }  \
+PUBLIC bool_t is_square_matrix(const linear_matrix *m)
+{
+        if (m->n_rows == m->n_cols)
+                return (bool_t)TRUE;
+        return (bool_t)FALSE;
+}
+
+PUBLIC bool_t is_iteration(const linear_matrix *m1, const linear_matrix *m2)
+{
+        const FP_TYPE *__restrict md1 = m1->data;
+        const FP_TYPE *__restrict md2 = m2->data;
+
+        if (m1->m_data && m2->data && has_same_dims(m1, m2)) {
+                FP_TYPE factor = fp_divide(md1[0], md2[0])
+
+                // row -> col loop order to take advantage of L1 Cache 
+                // and quicker access to data
+                for (uint32_t row_i = 0; row_i < m1->n_rows; ++row_i) {
+                        for (uint32_t col_i = 0; col_i < m1->n_cols; ++col_i) {
+                                FP_TYPE temp_factor = fp_divide(M_AT(m1, row_i, col_i), M_AT(m1, row_i, col_i);
+                                if (temp_factor != factor)
+                                        return (bool_t)FALSE;
+                        }
+                }
+                return (bool_t)TRUE;
+        } 
+        else 
+                return (bool_t)FALSE;
+}
+
 
 PUBLIC mo_status_t init_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols) 
 {
 	if (n_rows == 0 || n_cols == 0)
-	{
 		return ERR_INVALID_PARAMS;
-	}
 	m->data = (FP_TYPE*)malloc(sizeof(FP_TYPE) * n_rows * n_cols);
 	if (!m->data)
-	{
 		return ERR_MALLOC_FAILED;
-	}
 	m->n_rows = n_rows;
 	m->n_cols = n_cols;
 	return SUCCESS;
 	
 }
 
-PUBLIC mo_status_t destroy_matrix(linear_matrix_t *m) 
-{ 
-	if (m->data)
-	{
-		free(m->data);
-		memset(m, 0, sizeof(linear_matrix_t));
-		return SUCCESS;
-	}
-	else 
-	{
-		return ERR_MATRIX_DESTROY;
-	}	
-}
-
-PUBLIC FP_TYPE_RESULT at(const linear_matrix_t *m, const uint32_t row, const uint32_t col) 
+PUBLIC mo_status_t init_identity_matrix(linear_matrix_t *m, const uint32_t dim)
 {
-        VALIDATE_M_DATA_FP_TYPE(m);
-	if ( row < m->n_rows && col < m->n_cols )
-	{	
-		return FP_SUCCESS(m->data[row * m->n_cols + col]);
-	}
-	else
-        {
-                return FP_ERROR(ERR_INDEX_OUT_OF_RANGE);
-        }
-	
+        mo_status_t init_stat = init_matrix(m, dim, dim);
+        if (init_stat != SUCCESS)
+                return init_stat;
+       
+        memset(m->m_data, 0, sizeof(*m->m_data) * dim * dim);
+
+        // Instead of going into two loops and checking if row_i == col_i,
+        // we can observe that index of 'one' in each row is just incrementing 
+        // by one in every itteration.
+        // O(n^2) -> O(n)
+        uint32_t one_index = 0;
+        for (uint32_t row_i = 0; row_i < dim; ++row_i)
+                m->data[row_i * dim + one_index++] = AS_FP(1);
+
+        return SUCCESS;
 }
 
-PUBLIC LINEAR_MATRIX_RESULT negate(const linear_matrix_t *m) 
+PUBLIC mo_status_t init_zero_matrix(linear_matrix *m, const uint32_t n_rows, const uint32_t n_cols)
+{
+       mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+       if (init_stat != SUCCESS)
+               return init_stat;
+       memset(m->m_data, 0, sizeof(*m->m_data) * n_rows, n_cols);
+       return SUCCESS;
+}
+
+PUBLIC mo_status_t init_one_matrix(linear_matrix *m, const uint32_t n_rows, const uint32_t n_cols)
+{
+        mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+        if (init_stat != SUCCESS)
+                return init_stat;
+        memset(m->m_data, AS_FP(1), sizeof(*m->m_data) * n_rows * n_cols);
+        return SUCCESS;
+}
+
+PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t *m, const FP_TYPE *array, const uint32_t n_rows, const uint32_t n_cols)
+{
+        mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+        if (init_stat != SUCCESS)
+                return init_stat;
+        
+        memcpy((FP_TYPE *)m->m_data, (FP_TYPE *)array, sizeof(FP_TYPE) * n_rows * n_cols);
+        return SUCCESS;
+}
+
+PUBLIC mo_status_t destroy_matrix(linear_matrix_t *m) 
+{
+        if(!m->data)
+                return ERR_MATRIX_DESTROY;
+	free(m->data);
+	memset(m, 0, sizeof(linear_matrix_t));
+	return SUCCESS;
+}
+
+PUBLIC mo_status_t matrix_at(linear_matrix_t *m, FP_TYPE *result, const uint32_t row, const uint32_t col) 
+{
+        if (!(row >= m->n_rows) || !(col >= m->n_cols))
+                return ERR_INDEX_OUT_OF_RANGE;
+	*result = m->data[row * m->n_cols + col];
+        return SUCCESS;
+}
+
+PUBLIC mo_status_t matrix_negate(const linear_matrix_t *m) 
 {
         linear_matrix_t new_matrix;
 	mo_status_t result = init_matrix(&new_matrix, m->n_rows, m->n_cols);
