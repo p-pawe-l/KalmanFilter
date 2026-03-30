@@ -12,8 +12,9 @@
 
 #include <stdio.h>
 
+/* Logging macros */
 #define LOG_INFO(msg) printf("[INFO] %s\n", (msg))
 #define LOG_WARN(msg) fprintf(stderr, "[WARN] %s\n", (msg))
 #define LOG_ERR(msg) fprintf(stderr, "[ERROR] %s\n", (msg))
 
-#endif
+#endif 
