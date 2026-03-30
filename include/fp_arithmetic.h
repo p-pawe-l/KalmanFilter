@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include "other.h"
+
 /*
  * If our machine is supporting 128-bit integer types our fixed-point size can
  * be up to 64-bit. If not, we are only allowed to use up to 32-bit format.
@@ -92,4 +94,49 @@
  * */
 #define fp_divide(x1, x2) (((EXTENDED_FP_TYPE)x1 << FRACTIONAL_PART_SIZE) / (EXTENDED_FP_TYPE)x2)
 
-#endif
+/*
+ * Absolute value operation
+ * Param x1 (int64_t/int32_t) - 64-bit/32-bit fixed-point format number
+ * Returns  (int64_t/int32_t) - absolute value of x1 in 64-bit/32-bit fixed-point format
+ * */
+#define fp_abs(x1) ((x1) > 0 ? (x1) : -(x1))
+
+/*
+ * Max operation
+ * Param x1 (int64_t/int32_t) - first 64-bit/32-bit fixed-point format number
+ * Param x2 (int64_t/int32_t) - second 64-bit/32-bit fixed-point format number
+ * Returns  (int64_t/int32_t) - greater of x1 and x2 in 64-bit/32-bit fixed-point format
+ * */
+#define fp_max(x1, x2) ((x1) > (x2) ? (x1) : (x2))
+
+/*
+ * Min operation
+ * Param x1 (int64_t/int32_t) - first 64-bit/32-bit fixed-point format number
+ * Param x2 (int64_t/int32_t) - second 64-bit/32-bit fixed-point format number
+ * Returns  (int64_t/int32_t) - lesser of x1 and x2 in 64-bit/32-bit fixed-point format
+ * */
+#define fp_min(x1, x2) ((x1) < (x2) ? (x1) : (x2))
+
+/*
+ * Clip operation
+ * Param x   (int64_t/int32_t) - 64-bit/32-bit fixed-point format number
+ * Param min (int64_t/int32_t) - lower bound in 64-bit/32-bit fixed-point format
+ * Param max (int64_t/int32_t) - upper bound in 64-bit/32-bit fixed-point format
+ * Returns   (int64_t/int32_t) - x clamped to [min, max] in 64-bit/32-bit fixed-point format
+ * */
+#define fp_clip(x, min, max) (fp_min(fp_max((x), (min)), (max)))
+
+/*
+ * Power operation
+ * Param x (int64_t/int32_t) - base in 64-bit/32-bit fixed-point format
+ * Param n (int)             - non-negative integer exponent
+ * Returns (int64_t/int32_t) - x raised to the power of n in 64-bit/32-bit fixed-point format
+ * */
+static INLINE FP_TYPE fp_pow(FP_TYPE x, int n)
+{
+    FP_TYPE result = AS_FP(1);
+    for (int i = 0; i < n; ++i) {
+        result = fp_multiply(result, x);
+    }
+    return result;
+}
