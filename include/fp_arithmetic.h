@@ -2,6 +2,15 @@
 #define FP_ARITHMETIC_H
 
 /*
+ * Copyright (c) 2026 Paweł Kozikowski
+ *
+ * This file is part of a Kalman filter implementation in C.
+ *
+ * Licensed under the MIT License.
+ * See the LICENSE file in the project root for full license information.
+ */
+
+/*
  * Header file that contains fixed-point operations for 64-bit/32-bit numbers
  * fp_add - Add operation for two 64-bit/32-bit numbers in fixed-point
  * fp_substract - Substract operation for two 64-bit/32-bit numbers in
