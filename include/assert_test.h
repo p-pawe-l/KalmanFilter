@@ -20,25 +20,33 @@
 #define TEST
 #endif /* TEST */
 
-typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
+#define ANSI_RED "\x1b[31m"
+#define ANSI_GREEN "\x1b[32m"
+#define ANSI_RESET "\x1b[0m"
+
+#ifndef ASSERTION_FAILED
+#define ASSERTION_FAILED(msg) \
+    (fprintf(stderr, ANSI_RED "[FAIL] %s:%d: " msg "\n" ANSI_RESET, __FILE__, __LINE__))
+#endif /* ASSERTION_FAILED */
+
+#ifndef ASSERTION_SUCCEEDED
+#define ASSERTION_SUCCEEDED(msg) \
+    fprintf(stdout, ANSI_GREEN "[PASS] %s:%d: " msg "\n" ANSI_RESET, __FILE__, __LINE__)
+#endif /* ASSERTION_SUCCEEDED */
 
 /*
  * ASSERT_IS_EQUAL - checks if a and b are the same
  *
  * param a: First comparable variable
- * param b: Second compatable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
+ * param b: Second comparable variable
  */
 #ifndef ASSERT_IS_EQUAL
-#define ASSERT_IS_EQUAL(a, b)                               \
-    do {                                                    \
-        if ((a) != (b)) {                                   \
-            printf("Assertion failed: %s != %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_EQUAL(a, b)                  \
+    do {                                       \
+        if ((a) != (b))                        \
+            ASSERTION_FAILED(#a " != " #b);    \
+        else                                   \
+            ASSERTION_SUCCEEDED(#a " == " #b); \
     } while (0)
 #endif /* ASSERT_IS_EQUAL */
 
@@ -48,18 +56,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Maximum allowed difference between a and b
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_EQUAL
-#define ASSERT_IS_APPROX_EQUAL(a, b, epsilon)               \
-    do {                                                    \
-        if (fabs((a) - (b)) > (epsilon)) {                  \
-            printf("Assertion failed: %s != %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_APPROX_EQUAL(a, b, epsilon)  \
+    do {                                       \
+        if (fabs((a) - (b)) > (epsilon))       \
+            ASSERTION_FAILED(#a " !~ " #b);    \
+        else                                   \
+            ASSERTION_SUCCEEDED(#a " =~ " #b); \
     } while (0)
 #endif /* ASSERT_IS_APPROX_EQUAL */
 
@@ -68,18 +72,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  *
  * param a: First comparable variable
  * param b: Second comparable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_NOT_EQUAL
-#define ASSERT_IS_NOT_EQUAL(a, b)                           \
-    do {                                                    \
-        if ((a) == (b)) {                                   \
-            printf("Assertion failed: %s == %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_NOT_EQUAL(a, b)              \
+    do {                                       \
+        if ((a) == (b))                        \
+            ASSERTION_FAILED(#a " == " #b);    \
+        else                                   \
+            ASSERTION_SUCCEEDED(#a " != " #b); \
     } while (0)
 #endif /* ASSERT_IS_NOT_EQUAL */
 
@@ -89,18 +89,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Maximum allowed difference between a and b
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_NOT_EQUAL
-#define ASSERT_IS_APPROX_NOT_EQUAL(a, b, epsilon)           \
-    do {                                                    \
-        if (fabs((a) - (b)) <= (epsilon)) {                 \
-            printf("Assertion failed: %s == %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_APPROX_NOT_EQUAL(a, b, epsilon) \
+    do {                                          \
+        if (fabs((a) - (b)) <= (epsilon))         \
+            ASSERTION_FAILED(#a " =~ " #b);       \
+        else                                      \
+            ASSERTION_SUCCEEDED(#a " !~ " #b);    \
     } while (0)
 #endif /* ASSERT_IS_APPROX_NOT_EQUAL */
 
@@ -109,18 +105,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  *
  * param a: First comparable variable
  * param b: Second comparable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_GREATER_THAN
-#define ASSERT_IS_GREATER_THAN(a, b)                        \
-    do {                                                    \
-        if ((a) <= (b)) {                                   \
-            printf("Assertion failed: %s <= %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_GREATER_THAN(a, b)          \
+    do {                                      \
+        if ((a) <= (b))                       \
+            ASSERTION_FAILED(#a " <= " #b);   \
+        else                                  \
+            ASSERTION_SUCCEEDED(#a " > " #b); \
     } while (0)
 #endif /* ASSERT_IS_GREATER_THAN */
 
@@ -129,18 +121,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  *
  * param a: First comparable variable
  * param b: Second comparable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_LESS_THAN
-#define ASSERT_IS_LESS_THAN(a, b)                           \
-    do {                                                    \
-        if ((a) >= (b)) {                                   \
-            printf("Assertion failed: %s >= %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_LESS_THAN(a, b)             \
+    do {                                      \
+        if ((a) >= (b))                       \
+            ASSERTION_FAILED(#a " >= " #b);   \
+        else                                  \
+            ASSERTION_SUCCEEDED(#a " < " #b); \
     } while (0)
 #endif /* ASSERT_IS_LESS_THAN */
 
@@ -150,18 +138,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Tolerance added to b for the comparison
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_GREATER_THAN
-#define ASSERT_IS_APPROX_GREATER_THAN(a, b, epsilon)        \
-    do {                                                    \
-        if ((a) <= (b) + (epsilon)) {                       \
-            printf("Assertion failed: %s <= %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_APPROX_GREATER_THAN(a, b, epsilon) \
+    do {                                             \
+        if ((a) <= (b) + (epsilon))                  \
+            ASSERTION_FAILED(#a " <=~ " #b);         \
+        else                                         \
+            ASSERTION_SUCCEEDED(#a " >~ " #b);       \
     } while (0)
 #endif /* ASSERT_IS_APPROX_GREATER_THAN */
 
@@ -171,18 +155,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Tolerance subtracted from b for the comparison
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_LESS_THAN
-#define ASSERT_IS_APPROX_LESS_THAN(a, b, epsilon)           \
-    do {                                                    \
-        if ((a) >= (b) - (epsilon)) {                       \
-            printf("Assertion failed: %s >= %s\n", #a, #b); \
-            return TEST_FAILURE;                            \
-        }                                                   \
-        return TEST_SUCCESS;                                \
+#define ASSERT_IS_APPROX_LESS_THAN(a, b, epsilon) \
+    do {                                          \
+        if ((a) >= (b) - (epsilon))               \
+            ASSERTION_FAILED(#a " >=~ " #b);      \
+        else                                      \
+            ASSERTION_SUCCEEDED(#a " <~ " #b);    \
     } while (0)
 #endif /* ASSERT_IS_APPROX_LESS_THAN */
 
@@ -191,18 +171,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  *
  * param a: First comparable variable
  * param b: Second comparable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_GREATER_THAN_OR_EQUAL
-#define ASSERT_IS_GREATER_THAN_OR_EQUAL(a, b)              \
-    do {                                                   \
-        if ((a) < (b)) {                                   \
-            printf("Assertion failed: %s < %s\n", #a, #b); \
-            return TEST_FAILURE;                           \
-        }                                                  \
-        return TEST_SUCCESS;                               \
+#define ASSERT_IS_GREATER_THAN_OR_EQUAL(a, b)  \
+    do {                                       \
+        if ((a) < (b))                         \
+            ASSERTION_FAILED(#a " < " #b);     \
+        else                                   \
+            ASSERTION_SUCCEEDED(#a " >= " #b); \
     } while (0)
 #endif /* ASSERT_IS_GREATER_THAN_OR_EQUAL */
 
@@ -211,18 +187,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  *
  * param a: First comparable variable
  * param b: Second comparable variable
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_LESS_THAN_OR_EQUAL
-#define ASSERT_IS_LESS_THAN_OR_EQUAL(a, b)                 \
-    do {                                                   \
-        if ((a) > (b)) {                                   \
-            printf("Assertion failed: %s > %s\n", #a, #b); \
-            return TEST_FAILURE;                           \
-        }                                                  \
-        return TEST_SUCCESS;                               \
+#define ASSERT_IS_LESS_THAN_OR_EQUAL(a, b)     \
+    do {                                       \
+        if ((a) > (b))                         \
+            ASSERTION_FAILED(#a " > " #b);     \
+        else                                   \
+            ASSERTION_SUCCEEDED(#a " <= " #b); \
     } while (0)
 #endif /* ASSERT_IS_LESS_THAN_OR_EQUAL */
 
@@ -232,18 +204,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Tolerance subtracted from b for the comparison
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_GREATER_THAN_OR_EQUAL
 #define ASSERT_IS_APPROX_GREATER_THAN_OR_EQUAL(a, b, epsilon) \
     do {                                                      \
-        if ((a) < (b) - (epsilon)) {                          \
-            printf("Assertion failed: %s < %s\n", #a, #b);    \
-            return TEST_FAILURE;                              \
-        }                                                     \
-        return TEST_SUCCESS;                                  \
+        if ((a) < (b) - (epsilon))                            \
+            ASSERTION_FAILED(#a " <~ " #b);                   \
+        else                                                  \
+            ASSERTION_SUCCEEDED(#a " >=~ " #b);               \
     } while (0)
 #endif /* ASSERT_IS_APPROX_GREATER_THAN_OR_EQUAL */
 
@@ -253,18 +221,14 @@ typedef enum test_result { TEST_SUCCESS = 0, TEST_FAILURE } test_result_t;
  * param a: First comparable variable
  * param b: Second comparable variable
  * param epsilon: Tolerance added to b for the comparison
- * Informs user if assertion is finished with success or with failure.
- * In case of success it returns TEST_SUCCESS variable
- * In case of failure it returns TEST_FAILURE variable.
  */
 #ifndef ASSERT_IS_APPROX_LESS_THAN_OR_EQUAL
 #define ASSERT_IS_APPROX_LESS_THAN_OR_EQUAL(a, b, epsilon) \
     do {                                                   \
-        if ((a) > (b) + (epsilon)) {                       \
-            printf("Assertion failed: %s > %s\n", #a, #b); \
-            return TEST_FAILURE;                           \
-        }                                                  \
-        return TEST_SUCCESS;                               \
+        if ((a) > (b) + (epsilon))                         \
+            ASSERTION_FAILED(#a " >~ " #b);                \
+        else                                               \
+            ASSERTION_SUCCEEDED(#a " <=~ " #b);            \
     } while (0)
 #endif /* ASSERT_IS_APPROX_LESS_THAN_OR_EQUAL */
 
