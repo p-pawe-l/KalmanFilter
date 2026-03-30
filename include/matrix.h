@@ -14,20 +14,22 @@
 
 #include <stdint.h>
 
-#include "fixed_point/fp_arithmetic.h"
+#include "fp_arithmetic.h"
 #include "other.h"
 
 typedef enum matrix_operation_status {
-    SUCCESS = 0,
-    ERR_MALLOC_FAILED,
-    ERR_MATRIX_DESTROY,
-    ERR_INVALID_PARAMS,
-    ERR_DIMENSION_MISMATCH,
-    ERR_SINGULAR_MATRIX,
-    ERR_NON_SQUARE_MATRIX,
-    ERR_INDEX_OUT_OF_RANGE,
-    ERR_NULL_DATA_POINTER,
-    ERR_UNSUPPORTED_TYPE
+        SUCCESS = 0,
+        ERR_NON_INIT_MATRIX,
+        ERR_MALLOC_FAILED,
+        ERR_MATRIX_DESTROY,
+        ERR_EMPTY_DATA_PTR,
+        ERR_INVALID_PARAMS,
+        ERR_DIMENSION_MISMATCH,
+        ERR_SINGULAR_MATRIX,
+        ERR_NON_SQUARE_MATRIX,
+        ERR_INDEX_OUT_OF_RANGE,
+        ERR_NULL_DATA_POINTER,
+        ERR_UNSUPPORTED_TYPE
 } mo_status_t;
 
 /*
@@ -45,17 +47,20 @@ typedef enum matrix_operation_status {
  * |a b|c d|
  *
  * attribute data (FP_TYPE*) - array of matrix elements
- * n_rows         (uint32_t ) - number of rows in the matrix
- * n_cols         (uint32_t ) - number of columns in the matrix
+ * n_rows         (uint32_t) - number of rows in the matrix
+ * n_cols         (uint32_t) - number of columns in the matrix
+ * is_init        (bool_t)   - flag indicating, whether matrix was initialized
  *
  * We still need to track the number of rows and columns to check whether
  * matrices can be added or multiplied.
  */
 typedef struct linear_matrix {
-    FP_TYPE *data;
+        FP_TYPE *data;  // Data
 
-    uint32_t n_rows;
-    uint32_t n_cols;
+        uint32_t n_rows;  // Number of rows
+        uint32_t n_cols;  // Number of columns
+
+        bool_t is_init;  // Initialization flag
 } linear_matrix_t;
 
 /*
@@ -118,7 +123,7 @@ PUBLIC mo_status_t init_matrix(linear_matrix_t *m, const uint32_t n_rows, const 
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_identity_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
+PUBLIC mo_status_t init_identity_matrix(linear_matrix_t *m, const uint32_t dims);
 
 /*
  * Initialize a zero matrix.
@@ -131,20 +136,8 @@ PUBLIC mo_status_t init_identity_matrix(linear_matrix_t *m, const uint32_t n_row
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_zero_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
-
-/*
- * Initialize a matrix filled with ones.
- * Allocate enough memory for the matrix data using malloc, assign the row and
- * column counts to the appropriate attributes, and fill the matrix with ones.
- *
- * param m (linear_matrix_t *) - pointer to the matrix to initialize
- * param n_rows (const uint32_t) - number of rows in the initialized matrix
- * param n_cols (const uint32_t) - number of columns in the initialized matrix
- *
- * return (mo_status_t) - operation status
- */
-PUBLIC mo_status_t init_one_matrix(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
+PUBLIC mo_status_t init_zero_matrix(linear_matrix_t *m, const uint32_t n_rows,
+                                    const uint32_t n_cols);
 
 /*
  * Initialize a matrix from a 1D array.
@@ -153,15 +146,14 @@ PUBLIC mo_status_t init_one_matrix(linear_matrix_t *m, const uint32_t n_rows, co
  * provided contents from a 1D array.
  *
  * param m (linear_matrix_t *) - pointer to the matrix to initialize
- * param array (const FP_TYPE *) - pointer to a 1D array whose contents will be used to fill the matrix (64-bit/32-bit
- * fixed-point format)
- * param n_rows (const uint32_t) - number of rows in the initialized matrix
- * param n_cols (const uint32_t) - number of columns in the initialized matrix
+ * param array (const FP_TYPE *) - pointer to a 1D array whose contents will be used to fill the
+ * matrix (64-bit/32-bit fixed-point format) param n_rows (const uint32_t) - number of rows in the
+ * initialized matrix param n_cols (const uint32_t) - number of columns in the initialized matrix
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t *m, const FP_TYPE *array, const uint32_t n_rows,
-                                          const uint32_t n_cols);
+PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t *m, const FP_TYPE *array,
+                                          const uint32_t n_rows, const uint32_t n_cols);
 
 /*
  * Initialize a matrix from a 2D array.
@@ -170,15 +162,15 @@ PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t *m, const FP_TYPE *arr
  * provided contents from a 2D array.
  *
  * param m (linear_matrix_t *) - pointer to the matrix to initialize
- * param array (const FP_TYPE **) - pointer to a 2D array whose contents will be used to fill the matrix (64-bit/32-bit
- * fixed-point format)
- * param n_rows	(const uint32_t) - number of rows in the initialized matrix
- * param n_cols	(const uint32_t) - number of columns in the initialized matrix
+ * param array (const FP_TYPE **) - pointer to a 2D array whose contents will be used to fill the
+ * matrix (64-bit/32-bit fixed-point format) param n_rows	(const uint32_t) - number of rows in
+ * the initialized matrix param n_cols	(const uint32_t) - number of columns in the initialized
+ * matrix
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t *m, const FP_TYPE **array, const uint32_t n_rows,
-                                             const uint32_t n_cols);
+PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t *m, const FP_TYPE **array,
+                                             const uint32_t n_rows, const uint32_t n_cols);
 /*
  * Copy a matrix.
  * Copy the contents of one matrix into another matrix.
@@ -188,7 +180,8 @@ PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t *m, const FP_TYPE *
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_copy(linear_matrix_t *__restrict dest, const linear_matrix_t *__restrict src);
+PUBLIC mo_status_t matrix_copy(linear_matrix_t *__restrict dest,
+                               const linear_matrix_t *__restrict src);
 
 /*
  * Initialize a matrix with random numbers.
@@ -201,7 +194,8 @@ PUBLIC mo_status_t matrix_copy(linear_matrix_t *__restrict dest, const linear_ma
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_matrix_rand(linear_matrix_t *m, const uint32_t n_rows, const uint32_t n_cols);
+PUBLIC mo_status_t init_matrix_rand(linear_matrix_t *m, const uint32_t n_rows,
+                                    const uint32_t n_cols);
 
 /*
  * Initialize a matrix with a provided value.
@@ -216,8 +210,8 @@ PUBLIC mo_status_t init_matrix_rand(linear_matrix_t *m, const uint32_t n_rows, c
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t init_matrix_with(linear_matrix_t *m, const FP_TYPE content, const uint32_t n_rows,
-                                    const uint32_t n_cols);
+PUBLIC mo_status_t init_matrix_with(linear_matrix_t *m, const FP_TYPE content,
+                                    const uint32_t n_rows, const uint32_t n_cols);
 
 /*
  * Destroy a matrix's resources.
@@ -241,7 +235,8 @@ PUBLIC mo_status_t destroy_matrix(linear_matrix_t *m);
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_at(const linear_matrix_t *m, FP_TYPE *res, const uint32_t row, const uint32_t col);
+PUBLIC mo_status_t matrix_at(const linear_matrix_t *m, FP_TYPE *res, const uint32_t row,
+                             const uint32_t col);
 
 /*
  * Negate all values in the matrix.
@@ -251,7 +246,7 @@ PUBLIC mo_status_t matrix_at(const linear_matrix_t *m, FP_TYPE *res, const uint3
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_negate(const linear_matrix_t *m);
+PUBLIC mo_status_t matrix_negate(linear_matrix_t *m);
 
 /*
  * Scale a matrix.
@@ -262,33 +257,31 @@ PUBLIC mo_status_t matrix_negate(const linear_matrix_t *m);
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_scale(const linear_matrix_t *m, const FP_TYPE factor);
+PUBLIC mo_status_t matrix_scale(linear_matrix_t *m, const FP_TYPE factor);
 
 /*
  * Add two matrices.
  * Add the values from the two matrices element by element at matching indexes.
  *
- * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for vectorized
- * operations on CPU)
- * param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
- * vectorized operations on CPU)
+ * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for
+ * vectorized operations on CPU) param m2	(const linear_matrix_t * __restrict) - pointer to
+ * the second matrix (__restrict for vectorized operations on CPU)
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_add(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
+PUBLIC mo_status_t matrix_add(linear_matrix_t *m1, const linear_matrix_t *m2);
 
 /*
  * Compute the dot product of two matrices.
  * In other words, this function multiplies two matrices together.
  *
- * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for vectorized
- * operations on CPU)
- * param m2	(const linear_matrix_t * __restrict) - pointer to the second matrix (__restrict for
- * vectorized operations on CPU)
+ * param m1	(const linear_matrix_t * __restrict) - pointer to the first matrix  (__restrict for
+ * vectorized operations on CPU) param m2	(const linear_matrix_t * __restrict) - pointer to
+ * the second matrix (__restrict for vectorized operations on CPU)
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t *__restrict m1, const linear_matrix_t *__restrict m2);
+PUBLIC mo_status_t matrix_dot_product(linear_matrix_t *m1, const linear_matrix_t *m2);
 
 /*
  * Transpose a matrix.
@@ -298,7 +291,7 @@ PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t *__restrict m1, cons
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_transpose(const linear_matrix_t *m);
+PUBLIC mo_status_t matrix_transpose(linear_matrix_t *m);
 
 /*
  * Calculate the determinant of a matrix.
@@ -308,7 +301,7 @@ PUBLIC mo_status_t matrix_transpose(const linear_matrix_t *m);
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_det(const linear_matrix_t *m);
+PUBLIC mo_status_t matrix_det(linear_matrix_t *m);
 
 /*
  * Invert a matrix.
@@ -318,6 +311,6 @@ PUBLIC mo_status_t matrix_det(const linear_matrix_t *m);
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_inverse(const linear_matrix_t *m);
+PUBLIC mo_status_t matrix_inverse(linear_matrix_t *m);
 
 #endif

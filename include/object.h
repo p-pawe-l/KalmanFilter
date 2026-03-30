@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "fp_arithmetic.h"
 #include "matrix.h"
 
 #define STATE_INDICIES 3
@@ -26,9 +27,9 @@
  *
  * */
 typedef struct {
-        int64_t obj_pos;
-        int64_t obj_vel;
-        int64_t obj_acc;
+        FP_TYPE obj_pos;
+        FP_TYPE obj_vel;
+        FP_TYPE obj_acc;
 } __one_dim_object_state;
 
 linear_matrix_t matrix_cast(const __one_dim_object_state *struct_state);

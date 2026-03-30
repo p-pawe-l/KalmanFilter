@@ -1,0 +1,17 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./include",
+      "-c",
+      "-o",
+      "obj/matrix.o",
+      "src/matrix.c"
+    ],
+    "directory": "/home/pawel/Desktop/projects/kalman-filter-c",
+    "file": "/home/pawel/Desktop/projects/kalman-filter-c/src/matrix.c",
+    "output": "/home/pawel/Desktop/projects/kalman-filter-c/obj/matrix.o"
+  }
+]

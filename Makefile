@@ -27,4 +27,10 @@ $(BIN_DIR) $(OBJ_DIR):
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-.PHONY: all clean
+format:
+	clang-format -i $(SRC_DIR)/*.c include/*.h
+
+format-all:
+	clang-format -i $(SRC_DIR)/*.c include/*.h $(MAIN_SOURCE)	
+
+.PHONY: all clean format format-all

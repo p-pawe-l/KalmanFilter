@@ -12,8 +12,6 @@
 
 #include <stdint.h>
 
-#include "../other.h"
-
 /*
  * If our machine is supporting 128-bit integer types our fixed-point size can
  * be up to 64-bit. If not, we are only allowed to use up to 32-bit format.
