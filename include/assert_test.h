@@ -12,9 +12,10 @@
  * See the LICENSE file in the project root for full license information.
  */
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "fp_arithmetic.h"
 
 #ifndef TEST
 #define TEST
@@ -60,7 +61,7 @@
 #ifndef ASSERT_IS_APPROX_EQUAL
 #define ASSERT_IS_APPROX_EQUAL(a, b, epsilon)  \
     do {                                       \
-        if (fabs((a) - (b)) > (epsilon))       \
+        if (fp_abs((a) - (b)) > (epsilon))     \
             ASSERTION_FAILED(#a " !~ " #b);    \
         else                                   \
             ASSERTION_SUCCEEDED(#a " =~ " #b); \
