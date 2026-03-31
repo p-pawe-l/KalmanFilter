@@ -7,21 +7,13 @@
 #include <time.h>
 
 #include "../include/fp_arithmetic.h"
+#include "../include/log.h"
 #include "../include/other.h"
-
-// awful macro with return -.-
-#define CHECK_FOR_INIT_M(m)                    \
-    do {                                       \
-        if (!m || m->is_init == (bool_t)FALSE) \
-            return ERR_NON_INIT_MATRIX;        \
-    } while (0)
-#define TO_L_INDEX(m, r, c) ((uint32_t)(r * m->n_cols + c))
 
 PUBLIC bool_t has_same_dims(const linear_matrix_t* m1, const linear_matrix_t* m2)
 {
-    CHECK_FOR_INIT_M(m1);
-    CHECK_FOR_INIT_M(m2);
-
+    if (!m1 || !m1->data || !m2 || !m2->data)
+        return (bool_t)FALSE;
     if ((m1->n_rows == m2->n_rows) && (m1->n_cols == m2->n_cols))
         return (bool_t)TRUE;
     return (bool_t)FALSE;
@@ -29,8 +21,8 @@ PUBLIC bool_t has_same_dims(const linear_matrix_t* m1, const linear_matrix_t* m2
 
 PUBLIC bool_t is_square_matrix(const linear_matrix_t* m)
 {
-    CHECK_FOR_INIT_M(m);
-
+    if (!m || !m->data)
+        return (bool_t)FALSE;
     if (m->n_rows == m->n_cols)
         return (bool_t)TRUE;
     return (bool_t)FALSE;
@@ -38,10 +30,8 @@ PUBLIC bool_t is_square_matrix(const linear_matrix_t* m)
 
 PUBLIC bool_t is_iteration(const linear_matrix_t* m1, const linear_matrix_t* m2)
 {
-    CHECK_FOR_INIT_M(m1);
-    CHECK_FOR_INIT_M(m2);
-
-    // Should check if types are alliasing
+    if (!m1 || !m1->data || !m2 || !m2->data)
+        return (bool_t)FALSE;
     if (m1 == m2)
         return (bool_t)TRUE;
 
@@ -68,12 +58,17 @@ PUBLIC bool_t is_iteration(const linear_matrix_t* m1, const linear_matrix_t* m2)
     return (bool_t)FALSE;
 }
 
-PUBLIC mo_status_t init_matrix(linear_matrix_t* m, const uint32_t n_rows, const uint32_t n_cols)
+PUBLIC status_t init_matrix(linear_matrix_t* m, const uint32_t n_rows, const uint32_t n_cols)
 {
-    if (n_rows == 0 || n_cols == 0)
+    if (!m)
+        return ERR_NULL_DATA_POINTER;
+    if (n_rows == 0 || n_cols == 0) {
+        LOG_ERR("Invalid matrix dimensions");
         return ERR_INVALID_PARAMS;
+    }
     m->data = (FP_TYPE*)calloc(n_rows * n_cols, sizeof(FP_TYPE));
     if (!m->data) {
+        LOG_ERR("Failed to allocate memory for matrix during initialization");
         return ERR_MALLOC_FAILED;
     }
     m->n_rows = n_rows;
@@ -82,9 +77,9 @@ PUBLIC mo_status_t init_matrix(linear_matrix_t* m, const uint32_t n_rows, const 
     return SUCCESS;
 }
 
-PUBLIC mo_status_t init_identity_matrix(linear_matrix_t* m, const uint32_t dim)
+PUBLIC status_t init_identity_matrix(linear_matrix_t* m, const uint32_t dim)
 {
-    mo_status_t init_stat = init_matrix(m, dim, dim);
+    status_t init_stat = init_matrix(m, dim, dim);
     if (init_stat != SUCCESS)
         return init_stat;
 
@@ -98,10 +93,10 @@ PUBLIC mo_status_t init_identity_matrix(linear_matrix_t* m, const uint32_t dim)
     return SUCCESS;
 }
 
-PUBLIC mo_status_t init_matrix_with(linear_matrix_t* m, const FP_TYPE content,
-                                    const uint32_t n_rows, const uint32_t n_cols)
+PUBLIC status_t init_matrix_with(linear_matrix_t* m, const FP_TYPE content, const uint32_t n_rows,
+                                 const uint32_t n_cols)
 {
-    mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+    status_t init_stat = init_matrix(m, n_rows, n_cols);
     if (init_stat != SUCCESS)
         return init_stat;
     for (uint32_t i = 0; i < n_rows * n_cols; ++i)
@@ -109,20 +104,20 @@ PUBLIC mo_status_t init_matrix_with(linear_matrix_t* m, const FP_TYPE content,
     return SUCCESS;
 }
 
-PUBLIC mo_status_t init_matrix_from_array(linear_matrix_t* m, const FP_TYPE* array,
-                                          const uint32_t n_rows, const uint32_t n_cols)
+PUBLIC status_t init_matrix_from_array(linear_matrix_t* m, const FP_TYPE* array,
+                                       const uint32_t n_rows, const uint32_t n_cols)
 {
-    mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+    status_t init_stat = init_matrix(m, n_rows, n_cols);
     if (init_stat != SUCCESS)
         return init_stat;
     memcpy((FP_TYPE*)m->data, (FP_TYPE*)array, sizeof(FP_TYPE) * n_rows * n_cols);
     return SUCCESS;
 }
 
-PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t* m, const FP_TYPE** array,
-                                             const uint32_t n_rows, const uint32_t n_cols)
+PUBLIC status_t init_matrix_from_2d_array(linear_matrix_t* m, const FP_TYPE** array,
+                                          const uint32_t n_rows, const uint32_t n_cols)
 {
-    mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+    status_t init_stat = init_matrix(m, n_rows, n_cols);
     if (init_stat != SUCCESS)
         return init_stat;
 
@@ -133,11 +128,11 @@ PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t* m, const FP_TYPE**
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_copy(linear_matrix_t* restrict dest, const linear_matrix_t* restrict src)
+PUBLIC status_t matrix_copy(linear_matrix_t* restrict dest, const linear_matrix_t* restrict src)
 {
-    CHECK_FOR_INIT_M(dest);
-
-    mo_status_t init_res = init_matrix(dest, src->n_rows, src->n_cols);
+    if (!dest || !src || !src->data)
+        return ERR_NULL_DATA_POINTER;
+    status_t init_res = init_matrix(dest, src->n_rows, src->n_cols);
     if (init_res != SUCCESS) {
         return init_res;
     }
@@ -145,14 +140,15 @@ PUBLIC mo_status_t matrix_copy(linear_matrix_t* restrict dest, const linear_matr
     return SUCCESS;
 }
 
-PUBLIC mo_status_t init_matrix_rand(linear_matrix_t* m, const uint32_t n_rows,
-                                    const uint32_t n_cols, const unsigned int seed,
-                                    const FP_TYPE min, const FP_TYPE max)
+PUBLIC status_t init_matrix_rand(linear_matrix_t* m, const uint32_t n_rows, const uint32_t n_cols,
+                                 const unsigned int seed, const FP_TYPE min, const FP_TYPE max)
 {
-    if (min > max)
+    if (min > max) {
+        LOG_ERR("init_matrix_rand: min > max");
         return ERR_INVALID_PARAMS;
+    }
 
-    mo_status_t init_stat = init_matrix(m, n_rows, n_cols);
+    status_t init_stat = init_matrix(m, n_rows, n_cols);
     if (init_stat != SUCCESS)
         return init_stat;
 
@@ -169,49 +165,59 @@ PUBLIC mo_status_t init_matrix_rand(linear_matrix_t* m, const uint32_t n_rows,
     return SUCCESS;
 }
 
-PUBLIC mo_status_t destroy_matrix(linear_matrix_t* m)
+PUBLIC status_t destroy_matrix(linear_matrix_t* m)
 {
-    if (!m->data)
+    if (!m)
+        return ERR_NULL_DATA_POINTER;
+    if (!m->data) {
+        LOG_ERR("Cannot destroy matrix with NULL data");
         return ERR_MATRIX_DESTROY;
+    }
     free(m->data);
     memset(m, 0, sizeof(linear_matrix_t));
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_at(const linear_matrix_t* m, FP_TYPE* result, const uint32_t row,
-                             const uint32_t col)
+PUBLIC status_t matrix_at(const linear_matrix_t* m, FP_TYPE* result, const uint32_t row,
+                          const uint32_t col)
 {
-    if ((row >= m->n_rows) || (col >= m->n_cols))
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
+    if ((row >= m->n_rows) || (col >= m->n_cols)) {
+        LOG_ERR("matrix_at: index out of range");
         return ERR_INDEX_OUT_OF_RANGE;
+    }
     *result = m->data[row * m->n_cols + col];
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_put(linear_matrix_t* m, const FP_TYPE value, const uint32_t row,
-                              const uint32_t col)
+PUBLIC status_t matrix_put(linear_matrix_t* m, const FP_TYPE value, const uint32_t row,
+                           const uint32_t col)
 {
-    if ((row >= m->n_rows) || (col >= m->n_cols))
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
+    if ((row >= m->n_rows) || (col >= m->n_cols)) {
+        LOG_ERR("matrix_put: index out of range");
         return ERR_INDEX_OUT_OF_RANGE;
+    }
     m->data[row * m->n_cols + col] = value;
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_negate(linear_matrix_t* m)
+PUBLIC status_t matrix_negate(linear_matrix_t* m)
 {
-    CHECK_FOR_INIT_M(m);
-
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
     FP_TYPE* restrict md = m->data;
-    if (!m->data)
-        return ERR_EMPTY_DATA_PTR;
     for (uint32_t i = 0; i < (m->n_rows * m->n_cols); ++i)
         md[i] = -md[i];
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_scale(linear_matrix_t* m, const FP_TYPE factor)
+PUBLIC status_t matrix_scale(linear_matrix_t* m, const FP_TYPE factor)
 {
-    CHECK_FOR_INIT_M(m);
-
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
     for (uint32_t row = 0; row < m->n_rows; ++row)
         for (uint32_t col = 0; col < m->n_cols; ++col) {
             FP_TYPE val;
@@ -221,16 +227,17 @@ PUBLIC mo_status_t matrix_scale(linear_matrix_t* m, const FP_TYPE factor)
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_add(linear_matrix_t* m1, const linear_matrix_t* m2)
+PUBLIC status_t matrix_add(linear_matrix_t* m1, const linear_matrix_t* m2)
 {
-    CHECK_FOR_INIT_M(m1);
-    CHECK_FOR_INIT_M(m2);
-
+    if (!m1 || !m1->data || !m2 || !m2->data)
+        return ERR_NULL_DATA_POINTER;
     if (m1 == m2)
         return matrix_scale(m1, AS_FP(2));
 
-    if (!has_same_dims(m1, m2))
+    if (!has_same_dims(m1, m2)) {
+        LOG_ERR("matrix_add: dimension mismatch");
         return ERR_DIMENSION_MISMATCH;
+    }
 
     for (uint32_t row = 0; row < m1->n_rows; ++row)
         for (uint32_t col = 0; col < m1->n_cols; ++col) {
@@ -243,14 +250,15 @@ PUBLIC mo_status_t matrix_add(linear_matrix_t* m1, const linear_matrix_t* m2)
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t* m1, const linear_matrix_t* m2,
-                                      linear_matrix_t* result)
+PUBLIC status_t matrix_dot_product(const linear_matrix_t* m1, const linear_matrix_t* m2,
+                                   linear_matrix_t* result)
 {
-    CHECK_FOR_INIT_M(m1);
-    CHECK_FOR_INIT_M(m2);
-    CHECK_FOR_INIT_M(result);
-    if (m1->n_cols != m2->n_rows)
+    if (!m1 || !m1->data || !m2 || !m2->data || !result || !result->data)
+        return ERR_NULL_DATA_POINTER;
+    if (m1->n_cols != m2->n_rows) {
+        LOG_ERR("matrix_dot_product: dimension mismatch");
         return ERR_DIMENSION_MISMATCH;
+    }
 
     for (uint32_t row_m1 = 0; row_m1 < m1->n_rows; ++row_m1) {
         for (uint32_t col_m2 = 0; col_m2 < m2->n_cols; ++col_m2) {
@@ -267,13 +275,15 @@ PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t* m1, const linear_ma
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_transpose(linear_matrix_t* m)
+PUBLIC status_t matrix_transpose(linear_matrix_t* m)
 {
-    CHECK_FOR_INIT_M(m);
-
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
     FP_TYPE* buf = (FP_TYPE*)calloc(m->n_rows * m->n_cols, sizeof(FP_TYPE));
-    if (!buf)
+    if (!buf) {
+        LOG_ERR("matrix_transpose: failed to allocate buffer");
         return ERR_MALLOC_FAILED;
+    }
 
     for (uint32_t row = 0; row < m->n_rows; ++row)
         for (uint32_t col = 0; col < m->n_cols; ++col)
@@ -319,9 +329,10 @@ PRIVATE INLINE FP_TYPE for_det_calc_help(const FP_TYPE x1, const FP_TYPE x2, con
     return fp_multiply(fp_multiply(x1, x2), x3);
 }
 
-PUBLIC mo_status_t matrix_det(const linear_matrix_t* m, FP_TYPE* result)
+PUBLIC status_t matrix_det(const linear_matrix_t* m, FP_TYPE* result)
 {
-    CHECK_FOR_INIT_M(m);
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
     const FP_TYPE* __restrict md = m->data;
 
     if (is_square_matrix(m)) {
@@ -349,10 +360,12 @@ PUBLIC mo_status_t matrix_det(const linear_matrix_t* m, FP_TYPE* result)
                 break;
             }
             default:
+                LOG_ERR("matrix_det: unsupported matrix size");
                 return ERR_UNSUPPORTED_TYPE;
         }
         return SUCCESS;
     }
+    LOG_ERR("matrix_det: matrix is not square");
     return ERR_NOT_SQUARE_MATRIX;
 }
 
@@ -362,13 +375,14 @@ PRIVATE INLINE FP_TYPE cofactor_calc_help(const FP_TYPE x1, const FP_TYPE x2, co
     return fp_substract(fp_multiply(x1, x2), fp_multiply(x3, x4));
 }
 
-PUBLIC mo_status_t matrix_inverse(linear_matrix_t* m)
+PUBLIC status_t matrix_inverse(linear_matrix_t* m)
 {
-    CHECK_FOR_INIT_M(m);
+    if (!m || !m->data)
+        return ERR_NULL_DATA_POINTER;
     const FP_TYPE* __restrict md = m->data;
 
     FP_TYPE determinant;
-    mo_status_t determinant_res = matrix_det(m, &determinant);
+    status_t determinant_res = matrix_det(m, &determinant);
 
     if (is_square_matrix(m) && determinant != AS_FP(0LL)) {
         FP_TYPE div_factor = fp_divide(AS_FP(1LL), determinant);
@@ -406,10 +420,12 @@ PUBLIC mo_status_t matrix_inverse(linear_matrix_t* m)
                 break;
             }
             default:
+                LOG_ERR("matrix_inverse: unsupported matrix size");
                 return ERR_UNSUPPORTED_TYPE;
         }
         return SUCCESS;
     } else {
+        LOG_ERR("matrix_inverse: singular or non-square matrix");
         return determinant_res != SUCCESS ? determinant_res : ERR_SINGULAR_MATRIX;
     }
     return SUCCESS;
