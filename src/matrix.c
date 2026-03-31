@@ -1,6 +1,7 @@
 #include "../include/matrix.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -8,6 +9,7 @@
 #include "../include/fp_arithmetic.h"
 #include "../include/other.h"
 
+// awful macro with return -.-
 #define CHECK_FOR_INIT_M(m)                    \
     do {                                       \
         if (!m || m->is_init == (bool_t)FALSE) \
@@ -71,8 +73,9 @@ PUBLIC mo_status_t init_matrix(linear_matrix_t* m, const uint32_t n_rows, const 
     if (n_rows == 0 || n_cols == 0)
         return ERR_INVALID_PARAMS;
     m->data = (FP_TYPE*)calloc(n_rows * n_cols, sizeof(FP_TYPE));
-    if (!m->data)
+    if (!m->data) {
         return ERR_MALLOC_FAILED;
+    }
     m->n_rows = n_rows;
     m->n_cols = n_cols;
     m->is_init = (bool_t)TRUE;
@@ -132,16 +135,12 @@ PUBLIC mo_status_t init_matrix_from_2d_array(linear_matrix_t* m, const FP_TYPE**
 
 PUBLIC mo_status_t matrix_copy(linear_matrix_t* restrict dest, const linear_matrix_t* restrict src)
 {
-    // TODO check if correct
     CHECK_FOR_INIT_M(dest);
-    CHECK_FOR_INIT_M(src);
-
-    if (!has_same_dims(dest, src))
-        return ERR_DIMENSION_MISMATCH;
 
     mo_status_t init_res = init_matrix(dest, src->n_rows, src->n_cols);
-    if (init_res != SUCCESS)
+    if (init_res != SUCCESS) {
         return init_res;
+    }
     memcpy(dest->data, src->data, sizeof(FP_TYPE) * dest->n_rows * dest->n_cols);
     return SUCCESS;
 }
@@ -249,7 +248,8 @@ PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t* m1, const linear_ma
 {
     CHECK_FOR_INIT_M(m1);
     CHECK_FOR_INIT_M(m2);
-    if (m1->n_cols != m2->n_cols)
+    CHECK_FOR_INIT_M(result);
+    if (m1->n_cols != m2->n_rows)
         return ERR_DIMENSION_MISMATCH;
 
     for (uint32_t row_m1 = 0; row_m1 < m1->n_rows; ++row_m1) {
@@ -267,20 +267,25 @@ PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t* m1, const linear_ma
     return SUCCESS;
 }
 
-PUBLIC mo_status_t matrix_transpose(const linear_matrix_t* m, linear_matrix_t* result)
+PUBLIC mo_status_t matrix_transpose(linear_matrix_t* m)
 {
     CHECK_FOR_INIT_M(m);
-    CHECK_FOR_INIT_M(result);
 
-    if ((result->n_rows != m->n_cols) || (result->n_cols != m->n_rows)) {
-        return ERR_DIMENSION_MISMATCH;
-    }
+    FP_TYPE* buf = (FP_TYPE*)calloc(m->n_rows * m->n_cols, sizeof(FP_TYPE));
+    if (!buf)
+        return ERR_MALLOC_FAILED;
 
-    for (uint32_t row_m = 0; row_m < m->n_rows; ++row_m) {
-        for (uint32_t col_m = 0; col_m < m->n_cols; ++col_m) {
-            result->data[col_m * result->n_cols + row_m] = m->data[row_m * m->n_cols + col_m];
-        }
-    }
+    for (uint32_t row = 0; row < m->n_rows; ++row)
+        for (uint32_t col = 0; col < m->n_cols; ++col)
+            buf[col * m->n_rows + row] = m->data[row * m->n_cols + col];
+
+    free(m->data);
+    m->data = buf;
+
+    uint32_t temp = m->n_rows;
+    m->n_rows = m->n_cols;
+    m->n_cols = temp;
+
     return SUCCESS;
 }
 

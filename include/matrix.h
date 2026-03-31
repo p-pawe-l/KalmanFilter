@@ -31,6 +31,7 @@ typedef enum matrix_operation_status {
     ERR_NULL_DATA_POINTER,
     ERR_UNSUPPORTED_TYPE,
     ERR_NOT_SQUARE_MATRIX,
+    ERR_MATRIX_ACCESS
 } mo_status_t;
 
 /*
@@ -291,11 +292,11 @@ PUBLIC mo_status_t matrix_dot_product(const linear_matrix_t* m1, const linear_ma
  * Transpose a matrix.
  * This function swaps rows with columns in the matrix.
  *
- * param m (const linear_matrix_t *) - pointer to the matrix that will be transposed
+ * param m (linear_matrix_t *) - pointer to the matrix that will be transposed
  *
  * return (mo_status_t) - operation status
  */
-PUBLIC mo_status_t matrix_transpose(const linear_matrix_t* m, linear_matrix_t* result);
+PUBLIC mo_status_t matrix_transpose(linear_matrix_t* m);
 
 /*
  * Calculate the determinant of a matrix.
