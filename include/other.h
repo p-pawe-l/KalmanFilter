@@ -33,7 +33,9 @@ typedef enum status {
     ERR_NULL_DATA_POINTER,
     ERR_UNSUPPORTED_TYPE,
     ERR_NOT_SQUARE_MATRIX,
-    ERR_MATRIX_ACCESS
+    ERR_MATRIX_ACCESS,
+    ERR_INVALID_MATRIX,
+    ERR_CAST
 } status_t;
 
 typedef uint8_t bool_t;

@@ -20,6 +20,10 @@
 
 typedef enum state_idx { POSITION = 0, VELOCITY = 1, ACCELERATION = 2 } state_idx_t;
 
+#ifndef STATE_INDICES
+#define STATE_INDICES 3
+#endif /* STATE_INDICES */
+
 /*
  * Struct representing object state in single dimension
  * FP_TYPE obj_pos - object position     FORMAT: 64-bit/32-bit fixed-point
