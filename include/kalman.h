@@ -19,23 +19,23 @@
 
 /*
  * Kalman filter structure.
- * state_vector        (linear_matrix_t) - state vector (X)
- * transition_matrix   (linear_matrix_t) - transition matrix (F)
- * measurement_matrix  (linear_matrix_t) - measurement matrix (H)
- * process_noise_matrix (linear_matrix_t) - process noise matrix (Q)
- * measurement_noise_matrix (linear_matrix_t) - measurement noise matrix (R)
+ * state_vector        (linear_matrix_t*) - state vector (X)
+ * transition_matrix   (linear_matrix_t*) - transition matrix (F)
+ * measurement_matrix  (linear_matrix_t*) - measurement matrix (H)
+ * process_noise_matrix (linear_matrix_t*) - process noise matrix (Q)
+ * measurement_noise_matrix (linear_matrix_t*) - measurement noise matrix (R)
  *
  * Kalman filter is a recursive filter that estimates the state of a system from a series of
  * measurements. It is a optimal estimator in the sense that it minimizes the estimated error
  * covariance, which is a measure of the uncertainty of the estimate.
  */
 typedef struct kalman_filter {
-    linear_matrix_t state_vector;
-    linear_matrix_t transition_matrix;
-    linear_matrix_t measurement_matrix;
-    linear_matrix_t process_noise_matrix;
-    linear_matrix_t measurement_noise_matrix;
-} kalman_filter_t;
+    linear_matrix_t* state_vector;
+    linear_matrix_t* transition_matrix;
+    linear_matrix_t* measurement_matrix;
+    linear_matrix_t* process_noise_matrix;
+    linear_matrix_t* measurement_noise_matrix;
+} system_t;
 
 /*
  * Macros for accessing the state vector, transition matrix, measurement matrix,
@@ -62,18 +62,33 @@ typedef struct kalman_filter {
 #endif /* R matrix */
 
 /*
+ * This function initializes the system.
+ * param sys (system_t*) - pointer to the system
+ * return (status_t) - operation status
+ */
+PUBLIC status_t init_system(system_t* sys);
+
+/*
  * This function predicts the next state of the system.
- * param kf (kalman_filter_t*) - pointer to the Kalman filter
+ * param sys (system_t*) - pointer to the system
+ * param next_state (linear_matrix_t*) - pointer to the next state
  * return (linear_matrix_t) - predicted next state
  */
-PUBLIC linear_matrix_t predict_next_state(kalman_filter_t* kf);
+PUBLIC status_t predict_next_state(system_t* sys, linear_matrix_t* next_state);
 
 /*
  * This function updates the state of the system.
- * param kf (kalman_filter_t*) - pointer to the Kalman filter
+ * param sys (system_t*) - pointer to the system
  * param measurement (linear_matrix_t*) - measurement
  * return (linear_matrix_t) - updated state
  */
-PUBLIC linear_matrix_t update_state(kalman_filter_t* kf, linear_matrix_t* measurement);
+PUBLIC status_t update_state(system_t* sys, linear_matrix_t* measurement);
+
+/*
+ * This function destroys the system.
+ * param sys (system_t*) - pointer to the system
+ * return (status_t) - operation status
+ */
+PUBLIC status_t destroy_system(system_t* sys);
 
 #endif
