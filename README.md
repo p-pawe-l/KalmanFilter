@@ -27,6 +27,7 @@ A Kalman filter implementation in pure C using fixed-point arithmetic. Designed 
 ## Fixed-Point Arithmetic
 
 The numeric type adapts to the target platform at compile time:
+```
 ┌────────────────────────────────────────────────────────────────────────────┐
 | Platform capability  | Type      | Format | Integer bits | Fractional bits |
 |----------------------|-----------|--------|--------------|-----------------|
@@ -34,6 +35,7 @@ The numeric type adapts to the target platform at compile time:
 |----------------------------------------------------------------------------|
 | No 128-bit integers  | `int32_t` | Q16.16 | 16           | 16              |
 └────────────────────────────────────────────────────────────────────────────┘
+```
 
 Multiplication and division widen to the extended type internally to prevent overflow.
 
