@@ -299,31 +299,6 @@ PUBLIC status_t matrix_transpose(linear_matrix_t* m)
     return SUCCESS;
 }
 
-/*
- * Helper function for calculating part of the determinant of the 3x3 matrix.
- *
- * Example matrix:
- * a   b   c
- * d   e   f
- * g   h   i
- *
- * Helper function for calculating part of the determinant of the 3x3 matrix.
- *
- * Example matrix:
- * a   b   c
- * d   e   f
- * g   h   i
- *
- * As we know our determinant is aei + bfg + cdh - ceg - bdi - afh.
- * This function is useful to calculate this number from diagonal numbers on each diagonal
- * param x1 (int64_t/int32_t) - first number from diagonal   | 64-bit/32-bit fixed_point
- * format param x1 (int64_t/int32_t) - second number from diagonal  | 64-bit/32-bit
- * fixed_point format param x3 (int64_t/int32_t) - third number from diagonal   |
- * 64-bit/32-bit fixed-point format
- *
- * return   (int64_t/int32_t) - x1 * x2 * x3		     | 64-bit/32-bit fixed-point
- * format
- * */
 PRIVATE INLINE FP_TYPE for_det_calc_help(const FP_TYPE x1, const FP_TYPE x2, const FP_TYPE x3)
 {
     return fp_multiply(fp_multiply(x1, x2), x3);
