@@ -28,13 +28,13 @@ A Kalman filter implementation in pure C using fixed-point arithmetic. Designed 
 
 The numeric type adapts to the target platform at compile time:
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-| Platform capability  | Type      | Format | Integer bits | Fractional bits |
-|----------------------|-----------|--------|--------------|-----------------|
-| `__int128` supported | `int64_t` | Q32.32 | 32           | 32              |
-|----------------------------------------------------------------------------|
-| No 128-bit integers  | `int32_t` | Q16.16 | 16           | 16              |
-└────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+| Platform capability | Type    | Format | Integer bits | Fractional bits |
+|---------------------|---------|--------|--------------|-----------------|
+| __int128 supported  | int64_t | Q32.32 | 32           | 32              |
+|-------------------------------------------------------------------------|
+| No 128-bit integers | int32_t | Q16.16 | 16           | 16              |
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 Multiplication and division widen to the extended type internally to prevent overflow.
