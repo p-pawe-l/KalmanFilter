@@ -8,7 +8,7 @@
 PRIVATE TEST void test_init_matrix(void)
 {
     linear_matrix_t matrix;
-    mo_status_t r = init_matrix(&matrix, 10, 10);
+    status_t r = init_matrix(&matrix, 10, 10);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
 
@@ -23,7 +23,7 @@ PRIVATE TEST void test_init_matrix(void)
 PRIVATE TEST void test_init_identity_matrix(void)
 {
     linear_matrix_t matrix;
-    mo_status_t r = init_identity_matrix(&matrix, 5);
+    status_t r = init_identity_matrix(&matrix, 5);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
 
@@ -42,7 +42,7 @@ PRIVATE TEST void test_init_identity_matrix(void)
 PRIVATE TEST void test_init_matrix_with(void)
 {
     linear_matrix_t matrix;
-    mo_status_t r = init_matrix_with(&matrix, AS_FP(3), 5, 5);
+    status_t r = init_matrix_with(&matrix, AS_FP(3), 5, 5);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
 
@@ -62,7 +62,7 @@ PRIVATE TEST void test_init_matrix_from_array(void)
 {
     linear_matrix_t matrix;
     FP_TYPE arr[4] = {1, 2, 3, 4};
-    mo_status_t r = init_matrix_from_array(&matrix, arr, 2, 2);
+    status_t r = init_matrix_from_array(&matrix, arr, 2, 2);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
 
@@ -83,7 +83,7 @@ PRIVATE TEST void test_matrix_copy(void)
     FP_TYPE arr[4] = {AS_FP(1), AS_FP(2), AS_FP(3), AS_FP(4)};
     linear_matrix_t src, dest;
     init_matrix_from_array(&src, arr, 2, 2);
-    mo_status_t r = matrix_copy(&dest, &src);
+    status_t r = matrix_copy(&dest, &src);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(dest.n_rows, src.n_rows);
@@ -101,7 +101,7 @@ PRIVATE TEST void test_matrix_negate(void)
     FP_TYPE arr[4] = {AS_FP(1), AS_FP(2), AS_FP(3), AS_FP(4)};
     linear_matrix_t m;
     init_matrix_from_array(&m, arr, 2, 2);
-    mo_status_t r = matrix_negate(&m);
+    status_t r = matrix_negate(&m);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(m.data[0], -AS_FP(1));
@@ -117,7 +117,7 @@ PRIVATE TEST void test_matrix_scale(void)
     FP_TYPE arr[4] = {AS_FP(1), AS_FP(2), AS_FP(3), AS_FP(4)};
     linear_matrix_t m;
     init_matrix_from_array(&m, arr, 2, 2);
-    mo_status_t r = matrix_scale(&m, AS_FP(2));
+    status_t r = matrix_scale(&m, AS_FP(2));
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(m.data[0], AS_FP(2));
@@ -137,7 +137,7 @@ PRIVATE TEST void test_matrix_add(void)
     linear_matrix_t m1, m2;
     init_matrix_from_array(&m1, arr1, 2, 2);
     init_matrix_from_array(&m2, arr2, 2, 2);
-    mo_status_t r = matrix_add(&m1, &m2);
+    status_t r = matrix_add(&m1, &m2);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(m1.data[0], AS_FP(6));
@@ -157,7 +157,7 @@ PRIVATE TEST void test_matrix_transpose(void)
     FP_TYPE arr[6] = {AS_FP(1), AS_FP(2), AS_FP(3), AS_FP(4), AS_FP(5), AS_FP(6)};
     linear_matrix_t m;
     init_matrix_from_array(&m, arr, 2, 3);
-    mo_status_t r = matrix_transpose(&m);
+    status_t r = matrix_transpose(&m);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(m.n_rows, 3);
@@ -182,7 +182,7 @@ PRIVATE TEST void test_matrix_dot_product(void)
     init_matrix_from_array(&m1, arr1, 2, 2);
     init_matrix_from_array(&m2, arr2, 2, 2);
     init_matrix(&result, 2, 2);
-    mo_status_t r = matrix_dot_product(&m1, &m2, &result);
+    status_t r = matrix_dot_product(&m1, &m2, &result);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(result.data[0], AS_FP(19));
@@ -203,7 +203,7 @@ PRIVATE TEST void test_matrix_det_2x2(void)
     linear_matrix_t m;
     FP_TYPE det;
     init_matrix_from_array(&m, arr, 2, 2);
-    mo_status_t r = matrix_det(&m, &det);
+    status_t r = matrix_det(&m, &det);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(det, -AS_FP(2));
@@ -221,7 +221,7 @@ PRIVATE TEST void test_matrix_det_3x3(void)
     linear_matrix_t m;
     FP_TYPE det;
     init_matrix_from_array(&m, arr, 3, 3);
-    mo_status_t r = matrix_det(&m, &det);
+    status_t r = matrix_det(&m, &det);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(det, AS_FP(6));
@@ -236,7 +236,7 @@ PRIVATE TEST void test_matrix_inverse_2x2(void)
     FP_TYPE arr[4] = {AS_FP(1), AS_FP(2), AS_FP(3), AS_FP(4)};
     linear_matrix_t m;
     init_matrix_from_array(&m, arr, 2, 2);
-    mo_status_t r = matrix_inverse(&m);
+    status_t r = matrix_inverse(&m);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
     ASSERT_IS_EQUAL(m.data[0], -AS_FP(2));
@@ -252,7 +252,7 @@ PRIVATE TEST void test_matrix_inverse_identity(void)
     /* inverse of identity is identity */
     linear_matrix_t m;
     init_identity_matrix(&m, 3);
-    mo_status_t r = matrix_inverse(&m);
+    status_t r = matrix_inverse(&m);
 
     ASSERT_IS_EQUAL(r, SUCCESS);
 

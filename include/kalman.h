@@ -14,7 +14,6 @@
 #include <stdint.h>
 
 #include "matrix.h"
-#include "object.h"
 #include "other.h"
 
 /*
@@ -29,6 +28,7 @@
  * measurements. It is a optimal estimator in the sense that it minimizes the estimated error
  * covariance, which is a measure of the uncertainty of the estimate.
  */
+
 typedef struct kalman_filter {
     linear_matrix_t* state_vector;
     linear_matrix_t* transition_matrix;
@@ -66,7 +66,7 @@ typedef struct kalman_filter {
  * param sys (system_t*) - pointer to the system
  * return (status_t) - operation status
  */
-PUBLIC status_t init_system(system_t* sys);
+PUBLIC status_t init_system(system_t* sys, linear_matrix_t* initial_state);
 
 /*
  * This function predicts the next state of the system.
