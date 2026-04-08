@@ -38,30 +38,6 @@ typedef struct kalman_filter {
 } system_t;
 
 /*
- * Macros for accessing the state vector, transition matrix, measurement matrix,
- * process noise matrix, and measurement noise matrix.
- */
-#ifndef X
-#define X state_vector
-#endif /* X matrix */
-
-#ifndef F
-#define F transition_matrix
-#endif /* F matrix */
-
-#ifndef H
-#define H measurement_matrix
-#endif /* H matrix */
-
-#ifndef Q
-#define Q process_noise_matrix
-#endif /* Q matrix */
-
-#ifndef R
-#define R measurement_noise_matrix
-#endif /* R matrix */
-
-/*
  * This function initializes the system.
  * param sys (system_t*) - pointer to the system
  * return (status_t) - operation status

@@ -35,7 +35,7 @@ typedef enum status {
     ERR_NOT_SQUARE_MATRIX,
     ERR_MATRIX_ACCESS,
     ERR_INVALID_MATRIX,
-    ERR_CAST
+    ERR_CAST,
 } status_t;
 
 typedef uint8_t bool_t;
